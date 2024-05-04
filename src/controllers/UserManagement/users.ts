@@ -3,6 +3,8 @@
 import express, {Express, Request, Response, response} from 'express';
 import User from '../../schema/userSchema/user';
 import bcrypt from 'bcrypt';
+require('dotenv').config();
+import jwt from 'jsonwebtoken';
 
 const app = express();
 
@@ -13,19 +15,19 @@ app.use(express.json())
 export const createPerson = async (req: Request, res: Response) => {
     try {
         // Validate request body
-        const { username, password } = req.body;
+        const { username, password, empID } = req.body;
         if (!username || !password) {
           return res.status(400).json({ message: 'Username and password are required' });
         }
     
         // Check for existing user
-        const existingUser = await User.findOne({ username });
-        if (existingUser) {
-          return res.status(409).json({ message: 'Username already exists' });
+        const empid = await User.findOne({ empID });
+        if (empid) {
+          return res.status(409).json({ message: 'User already exists' });
         }
     
         // Create new user
-        const user = new User({ username, password });
+        const user = new User({ username, password, empID });
         await user.save();
     
         res.status(201).json({ message: 'User created successfully' });
@@ -39,15 +41,24 @@ export const createPerson = async (req: Request, res: Response) => {
 
 export const verifyUser =  async (req: Request, res: Response) => {
   try{
-    const {username, password} = req.body;
-    if (!username || !password) {
-      return res.status(400).json({ message: 'Username and password are required for authentication' });
+    const {username, password, empID} = req.body;
+    if (!username || !password || !empID) {
+      return res.status(400).json({ message: 'Username,password and empID are required for authentication' });
     }
-    const existingUser = await User.findOne({ username });
-    if (existingUser){
-      const isPasswordValid = await bcrypt.compare(req.body.password, existingUser.password);
+    const empid = await User.findOne({ username });
+    if (empid){
+      const isPasswordValid = await bcrypt.compare(req.body.password, empid.password);
       if (isPasswordValid){
-        res.status(200).send("Password verified successfully!")
+        // Generate JWT on successful verification
+        const payload = {
+          userId: empid._id,         // Include user ID in the payload
+          username: empid.username,  // Include relevant user information
+        };
+        
+        const secretKey: string = process.env.JWT_SECRET as string; // Use a strong secret key from environment variables
+        const token = jwt.sign(payload, secretKey, { expiresIn: '1h' }); // Set token expiry time
+
+        res.status(200).json({ message: 'Login successful!', token });
       }
       else{
         res.send("Incorrect credentials.")

@@ -10,7 +10,7 @@ const port = 5000;
 
 
 app.post('/createUser',userRoutes);
-app.post('/verifyUser',userRoutes);
+app.post('/login',userRoutes);
 
 (async () => {
     // Connect to MongoDB before starting the server

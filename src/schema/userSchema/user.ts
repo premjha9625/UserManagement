@@ -4,12 +4,14 @@ import bcrypt from 'bcrypt';
 
 interface IUser {
   username: string;
+  empID: number
 }
 
 // User schema with password hashing
 const userSchema = new mongoose.Schema<IUser & { password: string }>({
-  username: { type: String, required: true, unique: true },
+  username: { type: String, required: true },
   password: { type: String, required: true },
+  empID: { type: Number, required: true, unique: true }
 });
 
 userSchema.pre('save', async function (next) {
