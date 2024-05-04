@@ -1,14 +1,14 @@
 import mongoose from 'mongoose';
 
 const username = 'admin';
-const password = 'Admin@1212';
+const password = 'Admin1212';
 const host = '0.0.0.0';
 const port = '27017'
 const database = 'admin';
 
-//const url = 'mongodb://0.0.0.0:27017/admin';
+// //const url = 'mongodb://0.0.0.0:27017/admin';
 
-const url = `mongodb://${username}:${password}@${host}:${port}/${database}`;
+const url = `mongodb://${username}:${password}@${host}:${port}/?authSource=${database}`;
 
 const connectToMongo = async () => {
   try {
@@ -20,5 +20,5 @@ const connectToMongo = async () => {
   }
 };
 
+connectToMongo()
 
-export default connectToMongo;
