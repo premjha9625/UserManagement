@@ -24,6 +24,8 @@ userSchema.pre('save', async function (next) {
   next();
 });
 
-const User = mongoose.model<IUser & { password: string }>('user', userSchema);
+const userdb=mongoose.connection.useDb('users');
+
+const User = userdb.model<IUser & { password: string }>('user', userSchema);
 
 export default User;
