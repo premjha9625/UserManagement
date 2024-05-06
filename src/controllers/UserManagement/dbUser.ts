@@ -28,31 +28,31 @@ export const adddbUser = async (req: Request, res: Response) => {
           res.send(`User with empid ${empID} is already added to the ${database} database with following role ${role}`)
         } else {
           const newDbUser = new dbUser({ empID, username, password, role, database, host });
-        await newDbUser.save();
+          await newDbUser.save();
 
-        const shellScriptPath = '/home/prem/Desktop/vscode/express-metrics/dev/src/controllers/UserManagement/scripts/dbUser.sh';
+          const shellScriptPath = '/home/prem/Desktop/vscode/express-metrics/dev/src/controllers/UserManagement/scripts/dbUser.sh';
 
-        // Use Promise to handle asynchronous script execution
-        const scriptResult = await new Promise<string>((resolve, reject) => {
-          exec(
-            `sh ${shellScriptPath} ${host} ${database} ${username} ${password} ${role}`,
-            (err, stdout, stderr) => {
-              if (err) {
-                reject(err);
-                console.log(err)
-              } else if (stderr) {
-                reject(new Error(stderr));
-              } else {
-                resolve(stdout);
+          // Use Promise to handle asynchronous script execution
+          const scriptResult = await new Promise<string>((resolve, reject) => {
+            exec(
+              `sh ${shellScriptPath} ${host} ${database} ${username} ${password} ${role}`,
+              (err, stdout, stderr) => {
+                if (err) {
+                  reject(err);
+                  console.log(err)
+                } else if (stderr) {
+                  reject(new Error(stderr));
+                } else {
+                  resolve(stdout);
+                }
               }
-            }
-          );
-        });
+            );
+          });
 
-        console.log('Shell script output:', scriptResult);
-        res.status(200).send(`User added successfully to the ${database}`);
-          
-        }
+          console.log('Shell script output:', scriptResult);
+          res.status(200).send(`User added successfully to the ${database}`);
+            
+          }
         
       }
     }
