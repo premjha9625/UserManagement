@@ -21,7 +21,13 @@ export const adddbUser = async (req: Request, res: Response) => {
       if (!empid) {
         res.send('Employee is not registered. Please register the user first');
       } else {
-        const newDbUser = new dbUser({ empID, username, password, role, database, host });
+        const eid = await dbUser.findOne({empID})
+        const db = await dbUser.findOne({database})
+        const permission = await dbUser.findOne({role})
+        if (eid && db && permission) {
+          res.send(`User with empid ${empID} is already added to the ${database} database with following role ${role}`)
+        } else {
+          const newDbUser = new dbUser({ empID, username, password, role, database, host });
         await newDbUser.save();
 
         const shellScriptPath = '/home/prem/Desktop/vscode/express-metrics/dev/src/controllers/UserManagement/scripts/dbUser.sh';
@@ -45,6 +51,9 @@ export const adddbUser = async (req: Request, res: Response) => {
 
         console.log('Shell script output:', scriptResult);
         res.status(200).send(`User added successfully to the ${database}`);
+          
+        }
+        
       }
     }
   } catch (err) {
