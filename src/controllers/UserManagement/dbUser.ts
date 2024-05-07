@@ -9,9 +9,9 @@ const app = express();
 app.use(express.json());
 
 export const adddbUser = async (req: Request, res: Response) => {
-
+  const { empID, username, password, role, database, host } = req.body;
   try {
-    const { empID, username, password, role, database, host } = req.body;
+    
 
     if (!empID || !username || !password || !role || !database || !host) {
       return res.status(400).send('Invalid request body');
@@ -57,7 +57,7 @@ export const adddbUser = async (req: Request, res: Response) => {
       }
     }
   } catch (err) {
-    res.status(500).send(err);
+    res.status(500).send(`You are trying to update existing record for ${username} with empid ${empID}. Please go to the Update User page.`);
   }
 };
 
