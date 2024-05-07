@@ -9,11 +9,11 @@ const app = express();
 app.use(express.json());
 
 export const adddbUser = async (req: Request, res: Response) => {
-  const { empID, username, password, role, database, host } = req.body;
+  const { empID, username, password, roles, database, host } = req.body;
   try {
     
 
-    if (!empID || !username || !password || !role || !database || !host) {
+    if (!empID || !username || !password || !roles?.role|| !roles?.database || !roles?.host) {
       return res.status(400).send('Invalid request body');
     } 
     else {
@@ -23,11 +23,17 @@ export const adddbUser = async (req: Request, res: Response) => {
       } else {
         const eid = await dbUser.findOne({empID})
         const db = await dbUser.findOne({database})
-        const permission = await dbUser.findOne({role})
+        const permission = await dbUser.findOne({roles})
         if (eid && db && permission) {
-          res.send(`User with empid ${empID} is already added to the ${database} database with following role ${role}`)
+          res.send(`User with empid ${empID} is already added to the ${roles?.database} database with following role ${roles?.role}`)
         } else {
-          const newDbUser = new dbUser({ empID, username, password, role, database, host });
+          const newDbUser = new dbUser(
+            { 
+              empID, 
+              username, 
+              password, 
+              roles
+            });
           await newDbUser.save();
 
           const shellScriptPath = '/home/prem/Desktop/vscode/express-metrics/dev/src/controllers/UserManagement/scripts/dbUser.sh';
@@ -35,7 +41,7 @@ export const adddbUser = async (req: Request, res: Response) => {
           // Use Promise to handle asynchronous script execution
           const scriptResult = await new Promise<string>((resolve, reject) => {
             exec(
-              `sh ${shellScriptPath} ${host} ${database} ${username} ${password} ${role}`,
+              `sh ${shellScriptPath} ${roles?.host} ${roles?.database} ${username} ${password} ${roles?.role}`,
               (err, stdout, stderr) => {
                 if (err) {
                   reject(err);
@@ -60,6 +66,42 @@ export const adddbUser = async (req: Request, res: Response) => {
     res.status(500).send(`You are trying to update existing record for ${username} with empid ${empID}. Please go to the Update User page.`);
   }
 };
+
+export const updateUser = async (req: Request, res: Response) => {
+  const { empID, username, password, roles } = req.body;
+
+  try {
+    if (!empID || !roles?.role || !roles?.database || !roles?.host) {
+      return res.status(400).send('Invalid request body');
+    }
+
+    const existingUser = await dbUser.findOne({ empID });
+    if (!existingUser) {
+      return res.status(404).send('User with empID not found.');
+    }
+
+    // Update username and password if provided
+    if (username) {
+      existingUser.username = username;
+    }
+    if (password) {
+      existingUser.password = password;
+    }
+
+    // Update roles by combining existing and new values
+    existingUser.roles = {
+      ...existingUser.roles, // Preserve existing role data
+      ...roles, // Add new role properties (role, database, host)
+    };
+
+    await existingUser.save();
+
+    res.status(200).send('User updated successfully.');
+  } catch (err) {
+    res.status(500).send('Error updating user:', err);
+  }
+};
+
 
 export default {
   adddbUser,
