@@ -68,11 +68,11 @@ export const adddbUser = async (req: Request, res: Response) => {
 };
 
 export const updateUser = async (req: Request, res: Response) => {
-  const { empID, username, password, roles } = req.body;
+  const { empID, username,database, password, roles } = req.body;
 
   try {
-    if (!empID || !roles?.role || !roles?.database || !roles?.host) {
-      return res.status(400).send('Invalid request body');
+    if (!empID && !roles?.role && !roles?.database && !roles?.host && !roles?.password) {
+      return res.status(400).send('Nothing to update');
     }
 
     const existingUser = await dbUser.findOne({ empID });
@@ -98,11 +98,12 @@ export const updateUser = async (req: Request, res: Response) => {
 
     res.status(200).send('User updated successfully.');
   } catch (err) {
-    res.status(500).send('Error updating user:', err);
+    res.status(500).send(`Error updating user: ${err}`);
   }
 };
 
 
 export default {
   adddbUser,
+  updateUser
 };
